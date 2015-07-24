@@ -14,7 +14,7 @@
 
 #include "dtkIoExport.h"
 #include "dtkIo.h"
-#include "dtkIoSettings"
+#include "dtkIoSettings.h"
 #include "dtkIoDataModel.h"
 
 #include "dtkIoDataModelHdf5.h"
@@ -43,7 +43,7 @@ namespace dtkIo
         }
         
         void initialize(const QString& path) {
-            pluginFactory().record("dtkIoHdf5", dtkIoDataModelHdf5Creator);
+            pluginFactory().record("Hdf5", dtkIoDataModelHdf5Creator);
             pluginManager().initialize(path);
         }
 

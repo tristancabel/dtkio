@@ -16,7 +16,8 @@
 
 class dtkIoDataModelPrivate
 {
-    //QString type;
+public:
+    QString type;
 };
 
 
@@ -49,7 +50,7 @@ class dtkIoDataModelPrivate
  */
 dtkIoDataModel::dtkIoDataModel(void) : QObject(), d(new dtkIoDataModelPrivate)
 {
-    ;    
+    d->type = "dtkIoDataModel";    
 }
 
 /*!
@@ -63,3 +64,12 @@ dtkIoDataModel::~dtkIoDataModel(void)
 }
 
 
+void dtkIoDataModel::fileOpen(QString &name, dtkIoDataModel::FileMode mode)
+{
+    qDebug() << "dtkIoDataModel::fileOpen not implemented";
+}
+
+void dtkIoDataModel::fileClose(void)
+{
+       qDebug() << "dtkIoDataModel::fileClose not implemented";
+}

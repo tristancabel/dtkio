@@ -25,7 +25,7 @@ void dtkIoDataModelHdf5TestCase::initTestCase(void)
 {
     dtkIoSettings settings;
     settings.beginGroup("io");
-    dtkIo::pluginManager::initialize(settings.value("plugins").toString());
+    dtkIo::dataModel::initialize(settings.value("plugins").toString());
     settings.endGroup();
 }
 
@@ -36,7 +36,7 @@ void dtkIoDataModelHdf5TestCase::init(void)
 void dtkIoDataModelHdf5TestCase::testOpen(void)
 {
 
-    dtkIoDataModel *data_model = dtkIo::dataModelFactory::create("dtkIoDataModelHdf5");
+    dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("Hdf5");
     QString file_name = "fileCreationTest.h5";
     data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
     data_model->fileClose();

@@ -28,6 +28,7 @@ public:
     hid_t file_id;
     herr_t status;
     bool file_open;
+    QString type;
 
 public:
     bool fileExists(QString file);
@@ -48,6 +49,7 @@ bool dtkIoDataModelHdf5Private::fileExists(QString file) {
 // /////////////////////////////////////////////////////////////////
 dtkIoDataModelHdf5::dtkIoDataModelHdf5(void) : dtkIoDataModel(), d(new dtkIoDataModelHdf5Private)
 {
+    d->type = "HDF5";
     d->file_open=false;
 }
 

@@ -23,7 +23,8 @@ class dtkIoDataModelPrivate;
 
 class DTKIO_EXPORT dtkIoDataModel : public QObject
 {
-
+    Q_OBJECT
+    
 public:
     enum FileMode {
         Trunc     = 0x001,
@@ -45,12 +46,12 @@ public:
     virtual void fileOpen(QString &name, FileMode mode);
     virtual void fileClose(void);
 
-public:
-    virtual void datasetCreate(QString &name, int dimension);
-    virtual void datasetOpen(QString &name, FileMode mode);
-    virtual void datasetClose(QString &name);
-    virtual void datasetRead(QString &name);
-    virtual void datasetWrite(QString &name, void *data);
+/* public: */
+/*     virtual void datasetCreate(QString &name, int dimension); */
+/*     virtual void datasetOpen(QString &name, FileMode mode); */
+/*     virtual void datasetClose(QString &name); */
+/*     virtual void datasetRead(QString &name); */
+/*     virtual void datasetWrite(QString &name, void *data); */
 
 public:
     dtkIoDataModelPrivate *d;

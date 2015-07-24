@@ -58,7 +58,9 @@ qt5_use_modules(${PROJECT_NAME} Core)
 qt5_use_modules(${PROJECT_NAME} Test)
 qt5_use_modules(${PROJECT_NAME} Xml)
 
-target_link_libraries(${PROJECT_NAME} dtkIo)
+target_link_libraries(${PROJECT_NAME}
+  dtkIo
+  dtkLog)
 
 ## ###################################################################
 ## Test rules
