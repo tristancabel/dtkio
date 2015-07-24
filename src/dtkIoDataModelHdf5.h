@@ -40,10 +40,9 @@ public:
 
     
 public:
-//    void read(QString &dataset_name, int *dimensions, int *indexes, void *values);
     void read(QString &dataset_name, dtkIoDataModel::DataType type, void *values);
-//    void write(QString &dataset_name, int *dimensions, int *indexes, void *values);
-//    void write(QString &dataset_name, int *nb_values, void *values);
+    void write(QString &dataset_name, dtkIoDataModel::DataType type, int dimension,
+               qlonglong *shape, void *values);
 
 public:
     dtkIoDataModelHdf5Private *d;

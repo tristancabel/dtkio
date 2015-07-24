@@ -54,6 +54,8 @@ public:
 
 public:
     virtual void read(QString &dataset_name, dtkIoDataModel::DataType type, void *values);
+    virtual void write(QString &dataset_name, dtkIoDataModel::DataType type, int dimension,
+                       qlonglong *shape, void *values);
 /* public: */
 /*     virtual void datasetCreate(QString &name, int dimension); */
 /*     virtual void datasetOpen(QString &name, FileMode mode); */

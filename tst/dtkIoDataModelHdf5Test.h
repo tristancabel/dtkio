@@ -27,7 +27,7 @@ private slots:
 private slots:
     void testCreate(void);
     void testRead(void);
-//    void testMeta_data(void);
+    void testWrite(void);
 
 private slots:
     virtual void cleanupTestCase(void);

@@ -78,3 +78,10 @@ void dtkIoDataModel::read(QString &dataset_name, dtkIoDataModel::DataType type, 
 {
        qDebug() << "dtkIoDataModel::read not implemented";
 }
+
+
+void dtkIoDataModel::write(QString &dataset_name, dtkIoDataModel::DataType type, int dimension,
+                           qlonglong *shape, void *values)
+{
+    qDebug() << "dtkIoDataModel::write not implemented";
+}
