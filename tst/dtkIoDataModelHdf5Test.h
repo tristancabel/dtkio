@@ -25,7 +25,8 @@ private slots:
     void init(void);
 
 private slots:
-    void testOpen(void);
+    void testCreate(void);
+    void testRead(void);
 //    void testMeta_data(void);
 
 private slots:

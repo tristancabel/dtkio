@@ -32,7 +32,13 @@ public:
         ReadOnly  = 0x003,
         ReadWrite = 0x004
     };
-    
+
+    enum DataType {
+        Int = 1,
+        LongLongInt = 2,
+        Double = 3,
+    };        
+        
 public:
     dtkIoDataModel(void);
     virtual ~dtkIoDataModel(void);
@@ -46,6 +52,8 @@ public:
     virtual void fileOpen(QString &name, FileMode mode);
     virtual void fileClose(void);
 
+public:
+    virtual void read(QString &dataset_name, dtkIoDataModel::DataType type, void *values);
 /* public: */
 /*     virtual void datasetCreate(QString &name, int dimension); */
 /*     virtual void datasetOpen(QString &name, FileMode mode); */

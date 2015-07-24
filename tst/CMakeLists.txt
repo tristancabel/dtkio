@@ -66,6 +66,8 @@ target_link_libraries(${PROJECT_NAME}
 ## Test rules
 ## ###################################################################
 
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/example.h5"  "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
+
 add_test(dtkIoDataModelTest ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME} dtkIoDataModelTest)
 add_test(dtkIoDataModelHdf5Test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME} dtkIoDataModelHdf5Test)
 

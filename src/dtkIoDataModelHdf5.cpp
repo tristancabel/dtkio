@@ -18,6 +18,13 @@
 
 #include "hdf5.h"
 
+#define HDF5_DATATYPE(n) ( n==1 ? H5T_NATIVE_INT : ( n==2 ? H5T_NATIVE_LLONG : ( n==3 ? H5T_NATIVE_DOUBLE : -1)))
+// other available types : H5T_NATIVE_HBOOL //hbool_t
+//    H5T_NATIVE_FLOAT
+//        H5T_NATIVE_B64  // 64-bit buffer in memory
+//        H5T_C_S1  // c string size in bytes
+
+
 
 // /////////////////////////////////////////////////////////////////
 // dtkIoDataModelHdf5Private
@@ -31,7 +38,13 @@ public:
     QString type;
 
 public:
+    QHash<QString, hid_t> dataset_hash; // map of the open datasets
+
+    
+public:
     bool fileExists(QString file);
+    hid_t initRead(QString &dataset_name);
+
 };
 
 bool dtkIoDataModelHdf5Private::fileExists(QString file) {
@@ -42,6 +55,27 @@ bool dtkIoDataModelHdf5Private::fileExists(QString file) {
     } else {
         return false;
     }
+}
+
+hid_t dtkIoDataModelHdf5Private::initRead(QString &dataset_name) {
+    if(!file_open)
+        dtkError() << "file is not open! ";
+
+    hid_t dataset;
+    //check if the dataset is open. if not, open it
+    if(!dataset_hash.contains(dataset_name)) {
+        //open the dataset
+        dataset = H5Dopen2(file_id ,dataset_name.toUtf8().constData(), H5P_DEFAULT);
+
+        if(dataset>0)
+            dataset_hash[dataset_name] = dataset;
+        else
+            dtkError() << "Dataset" << dataset_name << "not existing, in file";
+    }
+    else
+        dataset = dataset_hash[dataset_name];
+
+    return dataset;
 }
 
 // /////////////////////////////////////////////////////////////////
@@ -104,6 +138,45 @@ void dtkIoDataModelHdf5::fileOpen(QString &file_name, dtkIoDataModel::FileMode m
 
 void dtkIoDataModelHdf5::fileClose(void)
 {
+    //close all the open datasets
+    QHash<QString, hid_t>::iterator it;
+    for(it = d->dataset_hash.begin(); it != d->dataset_hash.end(); ++it) {
+        qDebug() << "closing dataset" << it.key();
+        H5Dclose(it.value());
+    }
+    
     d->status = H5Fclose(d->file_id);
     d->file_open = false;
 }
+
+
+void dtkIoDataModelHdf5::read(QString &dataset_name, dtkIoDataModel::DataType type, void *values)
+{
+    hid_t dataset = d->initRead(dataset_name);
+    
+    //reading data into values
+    if(H5Dread(dataset, HDF5_DATATYPE(type), H5S_ALL, H5S_ALL, H5P_DEFAULT, values) <0)
+        dtkError() << "Error reading dataset" << dataset_name;
+}
+
+
+                                  
+
+/*! write data in the open file
+ * dimensions 
+ */
+/*void dtkIoDataModelHdf5::write(QString &dataset_name, int *dimensions, int *indexes, void *values)
+{
+    if(!d->file_open) {
+        dtkError() << "file is not open! ";
+    }
+
+    if(!d->dataSet(dataset_name)) {
+        dtkInfo() << "Dataset not existing, creating DataSet" << name;
+
+    }
+
+    //Set the values in the file;
+
+}
+*/

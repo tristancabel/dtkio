@@ -22,19 +22,7 @@
 
 namespace dtkIo
 {
-    // namespace pluginManager {
-    //     void initialize(const QString& path) {
-    //         QString realpath=path;
-    //         if (path.isEmpty()) {
-    //             dtkIoSettings io_settings;
-    //             io_settings.beginGroup("io");
-    //             realpath = io_settings.value("plugins").toString();
-    //             io_settings.endGroup();
-    //         }
-    //         dtkIo::dataModel::initialize(realpath);
-    //     }
-    // }
-    
+
     namespace dataModel {
 
         namespace _private {
@@ -56,30 +44,6 @@ namespace dtkIo
         }
     }
 
-    // namespace solver {
-
-    //     namespace _private {
-    //         dtkSparseSolverPluginManager manager;
-    //         dtkSparseSolverPluginFactoryTemplate factoryTemplate;
-    //     }
-
-    //     void initialize(const QString& path) {
-    //         pluginFactory<double>().record("dtkSparseSolverJacobiGeneric", dtkSparseSolverJacobiGenericCreator);
-    //         pluginFactory<double>().record("dtkSparseSolverSymmetricGaussSeidelGeneric", dtkSparseSolverSymmetricGaussSeidelGenericGenericCreator);
-    //         pluginManager().initialize(path);
-    //     }
-
-    //     dtkSparseSolverPluginManager& pluginManager(void) {
-    //         return _private::manager;
-    //     }
-
-    //     dtkSparseSolverPluginFactoryTemplate& pluginFactoryTemplate(void) {
-    //         return _private::factoryTemplate;
-    //     }
-    // }
-
 }
-
-
 //
 // dtkIo.cpp ends here

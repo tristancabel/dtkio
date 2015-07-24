@@ -73,3 +73,8 @@ void dtkIoDataModel::fileClose(void)
 {
        qDebug() << "dtkIoDataModel::fileClose not implemented";
 }
+
+void dtkIoDataModel::read(QString &dataset_name, dtkIoDataModel::DataType type, void *values)
+{
+       qDebug() << "dtkIoDataModel::read not implemented";
+}
