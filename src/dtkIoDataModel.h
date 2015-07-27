@@ -49,13 +49,17 @@ public:
 /* virtual void *copy(dtkIoDataModel *other) 0; */
 
 public:
-    virtual void fileOpen(QString &name, FileMode mode);
+    virtual void fileOpen(const QString& name, const FileMode& mode);
     virtual void fileClose(void);
 
 public:
-    virtual void read(QString &dataset_name, dtkIoDataModel::DataType type, void *values);
-    virtual void write(QString &dataset_name, dtkIoDataModel::DataType type, int dimension,
+    virtual void read(const QString& dataset_name, const dtkIoDataModel::DataType& type,
+                      void *values);
+    virtual void write(const QString &dataset_name, const dtkIoDataModel::DataType& type, const int& dimension,
                        qlonglong *shape, void *values);
+//    virtual void write(QString &dataset_name, qlonglong *offset, int *stride, int *count, int *block, void *values);
+
+    
 /* public: */
 /*     virtual void datasetCreate(QString &name, int dimension); */
 /*     virtual void datasetOpen(QString &name, FileMode mode); */

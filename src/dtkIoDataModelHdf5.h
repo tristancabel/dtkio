@@ -35,15 +35,16 @@ public:
 /*     void copy(dtkIoDataModelHdf5 *other); */
 
 public:
-    void fileOpen(QString &name, dtkIoDataModel::FileMode mode);
+    void fileOpen(const QString& name, const dtkIoDataModel::FileMode& mode);
     void fileClose(void);
 
     
 public:
-    void read(QString &dataset_name, dtkIoDataModel::DataType type, void *values);
-    void write(QString &dataset_name, dtkIoDataModel::DataType type, int dimension,
-               qlonglong *shape, void *values);
-
+    void read(const QString& dataset_name, const dtkIoDataModel::DataType& type, void *values);
+    void write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
+               const int& dimension, qlonglong *shape, void *values);
+//    void write(QString &dataset_name, qlonglong *offset, int *stride, int *count,
+//               int *block, void *values);
 public:
     dtkIoDataModelHdf5Private *d;
 };

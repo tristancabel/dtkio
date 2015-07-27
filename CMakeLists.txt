@@ -97,7 +97,7 @@ enable_testing()
 ## #################################################################
 
 find_package(dtk REQUIRED)
-find_package(HDF5 REQUIRED)
+find_package(HDF5 REQUIRED COMPONENTS CXX)
 
 include_directories(${dtk_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
 

@@ -28,7 +28,8 @@ private slots:
     void testCreate(void);
     void testRead(void);
     void testWrite(void);
-
+//    void testWriteSubset(void);
+    
 private slots:
     virtual void cleanupTestCase(void);
     virtual void cleanup(void);
