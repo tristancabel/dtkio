@@ -29,12 +29,15 @@ public:
 /*!
   \class dtkIoDataModel
   \inmodule dtkIo
-  \brief dtkIoDataModel is the interface for input/output Data Model (ASCII, hdf5, ..).
+  \brief dtkIoDataModel is the interface for input/output Data Model (ASCII, Hdf5, ..).
   
   long description
 
   \code
-  exemple of code
+  dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("Hdf5");
+  QString file_name = "fileCreationTest.h5";
+  data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+  data_model->fileClose();
   \endcode
 
 */
@@ -97,21 +100,22 @@ void dtkIoDataModel::read(const QString& dataset_name, const dtkIoDataModel::Dat
  * shape : number of elements in each dimension : ex dimension = 2 , shape = {3,4} .
  * values : data to be written
  */
-void dtkIoDataModel::write(const QString& dataset_name, const dtkIoDataModel::DataType& type, const int& dimension, qlonglong *shape, void *values)
+void dtkIoDataModel::write(const QString& dataset_name, const dtkIoDataModel::DataType& type, const int& dimension, quint64 *shape, void *values)
 {
     qDebug() << "dtkIoDataModel::write not implemented";
 }
 
-/*!
+/*! write using a hyperslab doesn't support overlapping blocks!
  *  write a subset of a dataset from its name and type into an existing dataset in the open file
  * count, offset, stride and block must be of the same size as the dimension of the dataspace. if dim = 2 , each of these parameters must be a 1-dimension array of size 2
- * offset :offset of the starting element
- * stride : determine how many elements to move from betwwen elements to write. 1=contiguous, 2 skip one element out of two
- * count : how many blocks to select from the dataspace in each dimension
+ * offset : offset of the starting element
+ * stride : determine how many elements to move from between blocks to write. 1=contiguous, 2 skip one element out of two
+ * count : number of blocks to select from the dataspace in each dimension
  * block : array to determine the size of the element block selected from the dataspace
+ * values_shape : number of elements in each dimension of values. must be of the dimension of the dataset dataspace
  * values : values to be written
  */
-//void dtkIoDataModel::write(QString &dataset_name, qlonglong *offset, int *stride, int *count, int *block, void *values)
-//{
-//    qDebug() << "dtkIoDataModel::write subset not implemented";
-//}
+void dtkIoDataModel::write(const QString &dataset_name,const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
+{
+    qDebug() << "dtkIoDataModel::write subset not implemented";
+}

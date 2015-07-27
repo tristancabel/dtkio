@@ -42,9 +42,9 @@ public:
 public:
     void read(const QString& dataset_name, const dtkIoDataModel::DataType& type, void *values);
     void write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
-               const int& dimension, qlonglong *shape, void *values);
-//    void write(QString &dataset_name, qlonglong *offset, int *stride, int *count,
-//               int *block, void *values);
+               const int& dimension, quint64 *shape, void *values);
+    void write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count,
+               quint64 *block, quint64 *values_shape, void *values);
 public:
     dtkIoDataModelHdf5Private *d;
 };

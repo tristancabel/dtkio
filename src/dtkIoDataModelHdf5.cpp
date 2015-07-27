@@ -18,7 +18,6 @@
 
 #include "H5Cpp.h"
 
-//#define HDF5_DATATYPE(n) ( n==1 ? H5T_NATIVE_INT : ( n==2 ? H5T_NATIVE_LLONG : ( n==3 ? H5T_NATIVE_DOUBLE : -1)))
 // other available types : H5T_NATIVE_HBOOL //hbool_t
 //    H5T_NATIVE_FLOAT
 //        H5T_NATIVE_B64  // 64-bit buffer in memory
@@ -44,7 +43,7 @@ public:
     bool fileExists(const QString& file);
     H5::DataSet& openDataset(const QString& dataset_name);
     H5::DataSet& createDataset(const QString &dataset_name, const dtkIoDataModel::DataType& type,
-                               const int& dim, qlonglong *shape);
+                               const int& dim, quint64 *shape);
     
 };
 
@@ -83,7 +82,7 @@ H5::DataSet& dtkIoDataModelHdf5Private::openDataset(const QString& dataset_name)
 // create a dataset or return the identifier if we already created it
 H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_name,
                                                      const dtkIoDataModel::DataType& type,
-                                                     const int& dim, qlonglong *shape)
+                                                     const int& dim, quint64 *shape)
 {
     if(file == nullptr) {
         dtkError() << "file is not open! ";
@@ -246,7 +245,7 @@ void dtkIoDataModelHdf5::read(const QString &dataset_name, const dtkIoDataModel:
  * dimensions 
  */
 void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
-                               const int& dimension, qlonglong *shape, void *values)
+                               const int& dimension, quint64 *shape, void *values)
 {
     switch(type) {
     case dtkIoDataModel::Int:
@@ -272,37 +271,33 @@ void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel
     };
 }
 
-/*
-void dtkIoDataModelHdf5::write(QString &dataset_name, qlonglong *offset, int *stride, int *count,
-                               int *block, void *values)
-{
-       if(block[0] != 1)
-           qDebug() << " block size != 1 not supported!! ";
 
-       hid_t dataset_id = d->openDataset(dataset_name);
-       //original dataspace
-       hid_t dataspace_id = H5Dget_space (dataset_id);
-       
-       // dataspace to write to
-       status = H5Sselect_hyperslab (dataspace_id, H5S_SELECT_SET, offset,
-                                     stride, count, block);
-       hid_t memspace_id = H5Screate_simple (RANK, count, NULL); 
+void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride,
+                               quint64 *count, quint64 *block, quint64 *values_shape, void *values)
+{   
+    H5::DataSet dataset = d->openDataset(dataset_name);
 
+    //the selection within the file dataset's dataspace
+    H5::DataSpace dataspace = dataset.getSpace();
+	dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 
+    //set the dimensions of values. memory dataspace and the selection within it
+    H5::DataSpace memspace(dataspace.getSimpleExtentNdims(), values_shape, NULL);    
 
-
-       // Write a subset of data to the dataset, then read the 
-       //entire dataset back from the file.  
-
-    printf ("\nWrite subset to file specifying:\n");
-    printf ("    offset=1x2 stride=1x1 count=3x4 block=1x1\n");
-    for (j = 0; j < DIM0_SUB; j++) {
-	for (i = 0; i < DIM1_SUB; i++)
-	   sdata[j][i] = 5;
-    }     
-
-    status = H5Dwrite (dataset_id, H5T_NATIVE_INT, memspace_id,
-                       dataspace_id, H5P_DEFAULT, sdata);
+    switch(type) {
+    case dtkIoDataModel::Int:
+        dataset.write(values, H5::PredType::NATIVE_INT, memspace, dataspace);
+        break;
+    case dtkIoDataModel::LongLongInt:
+        dataset.write(values, H5::PredType::NATIVE_LLONG, memspace, dataspace);
+        break;
+    case dtkIoDataModel::Double:
+        dataset.write(values, H5::PredType::NATIVE_DOUBLE, memspace, dataspace);
+        break;
+    default:
+        dtkError() << "write method: Datatype not supported";
+    };
+        
        
 }
-*/
+
