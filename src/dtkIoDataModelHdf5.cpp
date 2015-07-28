@@ -36,8 +36,8 @@ public:
     QString type;
 
 public:
-    QHash<QString, H5::DataSet > dataset_hash; // map of the open datasets
-
+    QHash<QString, H5::DataSet > dataset_hash; // hash of the open datasets
+    QHash<QString, H5::Group *> group_hash; // hash of the opened groups
     
 public:
     bool fileExists(const QString& file);
@@ -66,10 +66,24 @@ H5::DataSet& dtkIoDataModelHdf5Private::openDataset(const QString& dataset_name)
     H5::DataSet dataset;
     //check if the dataset is open. if not, open it
     if(!dataset_hash.contains(dataset_name)) {
-        dtkInfo() << "opening dataset" << dataset_name;
-        //open the dataset
-        dataset = file->openDataSet(dataset_name.toUtf8().constData());
+        //       QStringList dataset_name_split = dataset_name.split( "/" );
 
+//        if ( dataset_name_split.length() == 1) {
+//            //we are at the root of the file. no groups
+            dtkInfo() << "opening dataset" << dataset_name;
+            //open the dataset
+            dataset = file->openDataSet(dataset_name.toUtf8().constData());
+//        }
+//        else {
+//            group
+//            // we have to open some groups
+//            for(auto it: dataset_name_split) {
+                
+//            }
+
+//        }
+
+            
         if(dataset.getId()>0)
             dataset_hash[dataset_name] = dataset;
         else
@@ -92,13 +106,33 @@ H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_nam
     if(!dataset_hash.contains(dataset_name)) {
         dtkInfo() << "Dataset not existing, creating DataSet" << dataset_name;
 
-        //create a dataspace
+        QStringList dataset_name_split = dataset_name.split( "/" );
+        //erase first (root) and last (dataset) elements to only keep groups
+        dataset_name_split.pop_front();
+        dataset_name_split.pop_back();
+        
+        if ( dataset_name_split.length() > 0) {
+            //the dataset is in a group, we need to open or create groups
+            QString path = "/";
+            for(auto it: dataset_name_split)
+            {
+                path = path % it;
+                if(!group_hash.contains(path)) {
+                    if(H5Lexists(file->getId(), path.toUtf8().constData(), H5P_DEFAULT))  //The group exists
+                        group_hash[path] = new H5::Group (file->openGroup(path.toUtf8().constData()));
+                    else
+                        group_hash[path] = new H5::Group (file->createGroup(path.toUtf8().constData()));
+                }
+            }
+        }
+
+        //now create the dataset
         //TODO a cast ?
         hsize_t h_shape[dim];
         for(int i=0; i<dim; ++i)
             h_shape[i]=shape[i];
         H5::DataSpace dataspace(dim, h_shape);
-
+        
         switch(type) {
         case dtkIoDataModel::Int:
         {
@@ -123,7 +157,7 @@ H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_nam
         }
         default:
             dtkError() <<" datatype not supported";
-        };
+        };       
     }
     
     return dataset_hash[dataset_name];
@@ -272,8 +306,7 @@ void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel
 }
 
 
-void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride,
-                               quint64 *count, quint64 *block, quint64 *values_shape, void *values)
+void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {   
     H5::DataSet dataset = d->openDataset(dataset_name);
 
