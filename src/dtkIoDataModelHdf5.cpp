@@ -203,7 +203,7 @@ void dtkIoDataModelHdf5::fileOpen(const QString &file_name, const dtkIoDataModel
         case dtkIoDataModel::Trunc:
             d->file = new H5::H5File(file_name.toUtf8().constData(), H5F_ACC_TRUNC);
             break;
-        case dtkIoDataModel::Existing:
+        case dtkIoDataModel::NotExisting:
             d->file = new H5::H5File(file_name.toUtf8().constData(), H5F_ACC_EXCL);
             break;
         case dtkIoDataModel::ReadOnly:

@@ -107,6 +107,54 @@ void dtkIoDataModelHdf5TestCase::testWrite(void)
 
 }
 
+void dtkIoDataModelHdf5TestCase::testTrunc(void)
+{
+    dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("Hdf5");
+    QString file_name = "testTrunc.h5";
+    if(fileExists(file_name)) {
+        //delete the file
+        QFile::remove(file_name);
+    }
+    
+    data_model->fileOpen(file_name, dtkIoDataModel::NotExisting);
+
+    double w_values[2][3] = { {0.4, 1.5, 2.6} , {7.7, 8.8, 9.9}};
+    quint64 shape[2] = {2,3};
+    QString dataset_name = "/smallarray";
+    data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape, w_values);
+    data_model->fileClose();
+
+    QVERIFY(fileExists(file_name));
+
+    //modify the data
+    shape[0] = 3;
+    shape[1] = 4;
+    double w_values2[3][4] = { {-0.4, -1.5, -2.6, 32.5} , {-76.733, 188.8, 569.9, 25.3},
+                               {-76.733, 188.8, 569.9, 25.3}};
+    data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+    data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape, w_values2);
+    data_model->fileClose();
+
+    //read verification
+    double r_values[3][4] = { {0.0, 0.0, 0.0} , {0.0, 0.0, 0.0}};
+    data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+    data_model->read(dataset_name, dtkIoDataModel::Double, r_values);
+    data_model->fileClose();
+    
+    QCOMPARE(r_values[0][0], w_values2[0][0]);
+    QCOMPARE(r_values[0][1], w_values2[0][1]);
+    QCOMPARE(r_values[0][2], w_values2[0][2]);
+    QCOMPARE(r_values[0][3], w_values2[0][3]);
+    QCOMPARE(r_values[1][0], w_values2[1][0]);
+    QCOMPARE(r_values[1][1], w_values2[1][1]);
+    QCOMPARE(r_values[1][2], w_values2[1][2]);
+    QCOMPARE(r_values[1][3], w_values2[1][3]);
+    QCOMPARE(r_values[2][0], w_values2[2][0]);
+    QCOMPARE(r_values[2][1], w_values2[2][1]);
+    QCOMPARE(r_values[2][2], w_values2[2][2]);
+    QCOMPARE(r_values[2][3], w_values2[2][3]);
+}
+
 
 #define DIM0_TESTSUBSET 8
 #define DIM1_TESTSUBSET 10
@@ -205,6 +253,56 @@ void dtkIoDataModelHdf5TestCase::testReadWriteGroups(void)
     QCOMPARE(r_values[1][0], w_values[1][0]);
     QCOMPARE(r_values[1][1], w_values[1][1]);
     QCOMPARE(r_values[1][2], w_values[1][2]);
+
+}
+
+void dtkIoDataModelHdf5TestCase::testReadWriteExistingGroups(void)
+{
+    dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("Hdf5");
+    QString file_name = "testReadWriteExistingGroups.h5";
+    if(fileExists(file_name)) {
+        //delete the file
+        QFile::remove(file_name);
+    }
+    
+    data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+
+    double w_values[2][3] = { {0.4, 1.5, 2.6} , {7.7, 8.8, 9.9}};
+    double r_values[2][3] = { {0.0, 0.0, 0.0} , {0.0, 0.0, 0.0}};
+    quint64 shape[2] = {2,3};
+    QString dataset_name = "/myGroup/smallarray";
+    data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape, w_values);
+    data_model->fileClose();
+
+    QVERIFY(fileExists(file_name));
+
+    //modify group
+    data_model->fileOpen(file_name, dtkIoDataModel::ReadWrite);
+    double w_values2[2][3] = { {-0.4, -1.5, -2.6} , {-7.7, -8.8, -9.9}};
+    double r_values2[2][3] = { {0.0, 0.0, 0.0} , {0.0, 0.0, 0.0}};
+    QString dataset_name2 = "/myGroup/negativearray";
+    data_model->write(dataset_name2, dtkIoDataModel::Double, 2, shape, w_values2);
+    data_model->fileClose();
+    
+    //read verification
+    data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+    data_model->read(dataset_name, dtkIoDataModel::Double, r_values);
+    data_model->read(dataset_name2, dtkIoDataModel::Double, r_values2);
+    data_model->fileClose();
+    
+    QCOMPARE(r_values[0][0], w_values[0][0]);
+    QCOMPARE(r_values[0][1], w_values[0][1]);
+    QCOMPARE(r_values[0][2], w_values[0][2]);
+    QCOMPARE(r_values[1][0], w_values[1][0]);
+    QCOMPARE(r_values[1][1], w_values[1][1]);
+    QCOMPARE(r_values[1][2], w_values[1][2]);
+
+    QCOMPARE(r_values2[0][0], w_values2[0][0]);
+    QCOMPARE(r_values2[0][1], w_values2[0][1]);
+    QCOMPARE(r_values2[0][2], w_values2[0][2]);
+    QCOMPARE(r_values2[1][0], w_values2[1][0]);
+    QCOMPARE(r_values2[1][1], w_values2[1][1]);
+    QCOMPARE(r_values2[1][2], w_values2[1][2]);
 
 }
 

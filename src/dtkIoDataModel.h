@@ -28,7 +28,7 @@ class DTKIO_EXPORT dtkIoDataModel : public QObject
 public:
     enum FileMode {
         Trunc     = 0x001,
-        Existing  = 0x002,
+        NotExisting  = 0x002,
         ReadOnly  = 0x003,
         ReadWrite = 0x004
     };

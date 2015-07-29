@@ -28,8 +28,10 @@ private slots:
     void testCreate(void);
     void testRead(void);
     void testWrite(void);
+    void testTrunc(void);
     void testWriteHyperslab(void);
     void testReadWriteGroups(void);
+    void testReadWriteExistingGroups(void);
     
 private slots:
     virtual void cleanupTestCase(void);
