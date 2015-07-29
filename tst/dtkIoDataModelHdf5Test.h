@@ -30,6 +30,7 @@ private slots:
     void testWrite(void);
     void testTrunc(void);
     void testWriteHyperslab(void);
+    void testWriteByCoord(void);
     void testReadWriteGroups(void);
     void testReadWriteExistingGroups(void);
     

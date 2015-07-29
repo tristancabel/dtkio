@@ -115,7 +115,19 @@ void dtkIoDataModel::write(const QString& dataset_name, const dtkIoDataModel::Da
  * values_shape : number of elements in each dimension of values. must be of the dimension of the dataset dataspace
  * values : values to be written
  */
-void dtkIoDataModel::write(const QString &dataset_name,const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
+void dtkIoDataModel::writeHyperslab(const QString &dataset_name,const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {
-    qDebug() << "dtkIoDataModel::write subset not implemented";
+    qDebug() << "dtkIoDataModel::writeHyperslab not implemented";
+}
+
+/*! write using coordinates.
+ * dataset_name : name of the dataset
+ * type : type of the dataset
+ * nb_points : number of values to write
+ * points_coord : pointer to a 2D array [NB_POINTS][DIMENSIONS] . points_coord[0][0]=1, points_coord[0][1]=2 means that the point 0 to write have coordinates {1,2} in the file
+ * values : values to write . values to write need to be contiguous
+ */
+void dtkIoDataModel::writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values)
+{
+    qDebug() << "dtkIoDataModel::writeByCoord not implemented";
 }

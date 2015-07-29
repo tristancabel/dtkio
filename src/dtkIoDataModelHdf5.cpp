@@ -303,8 +303,8 @@ void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel
     };
 }
 
-
-void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
+//hyperslab write
+void dtkIoDataModelHdf5::writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {   
     H5::DataSet *dataset = d->openDataset(dataset_name);
 
@@ -313,7 +313,7 @@ void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel
 	dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 
     //set the dimensions of values. memory dataspace and the selection within it
-    H5::DataSpace memspace(dataspace.getSimpleExtentNdims(), values_shape, NULL);    
+    H5::DataSpace memspace(dataspace.getSimpleExtentNdims(), values_shape);    
 
     switch(type) {
     case dtkIoDataModel::Int:
@@ -330,5 +330,34 @@ void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel
     };
         
        
+}
+
+
+//point selection write
+// assuming dataset and values have the same shape and the points values are contiguous in values
+void dtkIoDataModelHdf5::writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values) 
+{   
+    H5::DataSet *dataset = d->openDataset(dataset_name);
+
+    //the selection within the file dataset's dataspace
+    H5::DataSpace file_dataspace = dataset->getSpace();
+    file_dataspace.selectElements( H5S_SELECT_SET, nb_points, points_coord);
+
+    //set the dimensions of values. memory dataspace and the selection within it
+    H5::DataSpace values_dataspace(1, &nb_points);    
+
+    switch(type) {
+    case dtkIoDataModel::Int:
+        dataset->write(values, H5::PredType::NATIVE_INT, values_dataspace, file_dataspace);
+        break;
+    case dtkIoDataModel::LongLongInt:
+        dataset->write(values, H5::PredType::NATIVE_LLONG, values_dataspace, file_dataspace);
+        break;
+    case dtkIoDataModel::Double:
+        dataset->write(values, H5::PredType::NATIVE_DOUBLE, values_dataspace, file_dataspace);
+        break;
+    default:
+        dtkError() << "write method: Datatype not supported";
+    };
 }
 

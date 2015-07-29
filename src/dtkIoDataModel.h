@@ -56,8 +56,8 @@ public:
     virtual void read(const QString& dataset_name, const dtkIoDataModel::DataType& type,
                       void *values);
     virtual void write(const QString &dataset_name, const dtkIoDataModel::DataType& type, const int& dimension, quint64 *shape, void *values);
-    virtual void write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values);
-
+    virtual void writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values);
+    virtual void writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values);
     
 /* public: */
 /*     virtual void datasetCreate(QString &name, int dimension); */

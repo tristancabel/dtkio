@@ -196,7 +196,7 @@ void dtkIoDataModelHdf5TestCase::testWriteHyperslab(void)
     quint64 stride[2] = {1,1};
     quint64 values_shape[2] = {2,2};
     
-    data_model->write(dataset_name, dtkIoDataModel::Double, offset, stride, count, block, values_shape, w_subdata);
+    data_model->writeHyperslab(dataset_name, dtkIoDataModel::Double, offset, stride, count, block, values_shape, w_subdata);
     data_model->fileClose();
 
 
@@ -218,6 +218,66 @@ void dtkIoDataModelHdf5TestCase::testWriteHyperslab(void)
     QCOMPARE(r_data[3][5], w_subdata[0][1]);
     QCOMPARE(r_data[4][4], w_subdata[1][0]);
     QCOMPARE(r_data[4][5], w_subdata[1][1]);
+
+}
+
+
+void dtkIoDataModelHdf5TestCase::testWriteByCoord(void)
+{
+    dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("Hdf5");
+    QString file_name = "testWriteByCoord.h5";
+    if(fileExists(file_name)) {
+        //delete the file
+        QFile::remove(file_name);
+    }
+
+    // Write initial data
+    data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+    double w_data[DIM0_TESTSUBSET][DIM1_TESTSUBSET] ;
+    QString dataset_name = "/testsubset";
+    quint64 shape[2] = {DIM0_TESTSUBSET, DIM1_TESTSUBSET};
+    
+    for(int i=0; i<DIM0_TESTSUBSET; ++i) {
+        for(int j=0; j<DIM1_TESTSUBSET; ++j)
+        {
+            if(j< (DIM0_TESTSUBSET/2))
+                w_data[i][j] = 1.0;
+            else
+                w_data[i][j] = 2.0;
+        }
+    }
+    data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape, w_data);
+    data_model->fileClose();
+    QVERIFY(fileExists(file_name));
+
+    // Write Hyperslab changes
+    data_model->fileOpen(file_name, dtkIoDataModel::ReadWrite);
+
+    double w_subdata[4] = { 50.0, 60.0, 70.0, 80.0 };
+    quint64 nb_points = 4;
+    quint64 points_coord[4][2] = { {0,0}, {3,5}, {2,3}, {4,1}} ;
+    
+    data_model->writeByCoord(dataset_name, dtkIoDataModel::Double, nb_points, &points_coord[0][0], w_subdata);
+    data_model->fileClose();
+
+    //check written data
+    double r_data[DIM0_TESTSUBSET][DIM1_TESTSUBSET] ;
+    data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+    data_model->read(dataset_name, dtkIoDataModel::Double, r_data);
+    data_model->fileClose();
+    
+    QCOMPARE(r_data[1][0], 1.0);
+    QCOMPARE(r_data[0][1], 1.0);
+    QCOMPARE(r_data[0][8], 2.0);
+    QCOMPARE(r_data[0][9], 2.0);
+    QCOMPARE(r_data[7][0], 1.0);
+    QCOMPARE(r_data[7][1], 1.0);
+    QCOMPARE(r_data[7][8], 2.0);
+    QCOMPARE(r_data[7][9], 2.0);
+    QCOMPARE(r_data[0][0], w_subdata[0]);
+    QCOMPARE(r_data[3][5], w_subdata[1]);
+    QCOMPARE(r_data[2][3], w_subdata[2]);
+    QCOMPARE(r_data[4][1], w_subdata[3]);
 
 }
 
