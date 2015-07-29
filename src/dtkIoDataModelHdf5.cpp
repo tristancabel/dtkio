@@ -36,13 +36,13 @@ public:
     QString type;
 
 public:
-    QHash<QString, H5::DataSet > dataset_hash; // hash of the open datasets
+    QHash<QString, H5::DataSet *> dataset_hash; // hash of the open datasets
     QHash<QString, H5::Group *> group_hash; // hash of the opened groups
     
 public:
     bool fileExists(const QString& file);
-    H5::DataSet& openDataset(const QString& dataset_name);
-    H5::DataSet& createDataset(const QString &dataset_name, const dtkIoDataModel::DataType& type,
+    H5::DataSet* openDataset(const QString& dataset_name);
+    H5::DataSet* createDataset(const QString &dataset_name, const dtkIoDataModel::DataType& type,
                                const int& dim, quint64 *shape);
     
 };
@@ -58,43 +58,29 @@ bool dtkIoDataModelHdf5Private::fileExists(const QString& file) {
 }
 
 //return the dataset to read from if it exist in the file
-H5::DataSet& dtkIoDataModelHdf5Private::openDataset(const QString& dataset_name) {
+H5::DataSet* dtkIoDataModelHdf5Private::openDataset(const QString& dataset_name) {
     
     if(file == nullptr)
         dtkError() << "file is not open! ";
 
-    H5::DataSet dataset;
+    H5::DataSet *dataset;
     //check if the dataset is open. if not, open it
     if(!dataset_hash.contains(dataset_name)) {
-        //       QStringList dataset_name_split = dataset_name.split( "/" );
-
-//        if ( dataset_name_split.length() == 1) {
-//            //we are at the root of the file. no groups
-            dtkInfo() << "opening dataset" << dataset_name;
-            //open the dataset
-            dataset = file->openDataSet(dataset_name.toUtf8().constData());
-//        }
-//        else {
-//            group
-//            // we have to open some groups
-//            for(auto it: dataset_name_split) {
-                
-//            }
-
-//        }
-
-            
-        if(dataset.getId()>0)
+        dtkInfo() << "opening dataset" << dataset_name;
+        //open the dataset
+        dataset = new H5::DataSet(file->openDataSet(dataset_name.toUtf8().constData()));
+        
+        if(dataset->getId()>0)
             dataset_hash[dataset_name] = dataset;
         else
             dtkError() << "Dataset" << dataset_name << "not existing, in file";
     }
-
+    
     return dataset_hash[dataset_name];
 }
 
 // create a dataset or return the identifier if we already created it
-H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_name,
+H5::DataSet* dtkIoDataModelHdf5Private::createDataset(const QString& dataset_name,
                                                      const dtkIoDataModel::DataType& type,
                                                      const int& dim, quint64 *shape)
 {
@@ -102,7 +88,7 @@ H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_nam
         dtkError() << "file is not open! ";
     }
 
-    H5::DataSet dataset;
+    H5::DataSet *dataset;
     if(!dataset_hash.contains(dataset_name)) {
         dtkInfo() << "Dataset not existing, creating DataSet" << dataset_name;
 
@@ -128,31 +114,31 @@ H5::DataSet& dtkIoDataModelHdf5Private::createDataset(const QString& dataset_nam
 
         //now create the dataset
         //TODO a cast ?
-        hsize_t h_shape[dim];
-        for(int i=0; i<dim; ++i)
-            h_shape[i]=shape[i];
-        H5::DataSpace dataspace(dim, h_shape);
+//        hsize_t h_shape[dim];
+//        for(int i=0; i<dim; ++i)
+//            h_shape[i]=shape[i];
+        H5::DataSpace dataspace(dim, shape);
         
         switch(type) {
         case dtkIoDataModel::Int:
         {
             H5::DataType datatype( H5::PredType::NATIVE_INT);            
             //datatype.setOrder(H5T_ORDER_LE); //little endian order
-            dataset_hash[dataset_name] = file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace);
+            dataset_hash[dataset_name] = new H5::DataSet(file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace));
             break;
         }
         case dtkIoDataModel::LongLongInt:
         {
             H5::DataType datatype( H5::PredType::NATIVE_LLONG);            
             //datatype.setOrder(H5T_ORDER_LE); //little endian order
-            dataset_hash[dataset_name] = file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace);
+            dataset_hash[dataset_name] =  new H5::DataSet(file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace));
             break;
         }
         case dtkIoDataModel::Double:
         {
             H5::DataType datatype( H5::PredType::NATIVE_DOUBLE);            
             //datatype.setOrder(H5T_ORDER_LE); //little endian order
-            dataset_hash[dataset_name] = file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace);
+            dataset_hash[dataset_name] =  new H5::DataSet(file->createDataSet(dataset_name.toUtf8().constData(), datatype, dataspace));
             break;
         }
         default:
@@ -228,18 +214,30 @@ void dtkIoDataModelHdf5::fileOpen(const QString &file_name, const dtkIoDataModel
 void dtkIoDataModelHdf5::fileClose(void)
 {
     //close all the open datasets
-    QHash<QString, H5::DataSet>::iterator it;
-    for(it = d->dataset_hash.begin(); it != d->dataset_hash.end(); ++it) {
-        qDebug() << "closing dataset" << it.key();
-        it.value().close();
-     }
+    {
+        QHash<QString, H5::DataSet *>::iterator it;
+        for(it = d->dataset_hash.begin(); it != d->dataset_hash.end(); ++it) {
+            qDebug() << "closing dataset" << it.key();
+            it.value()->close();
+        }
+        d->dataset_hash.clear();
+    }
+    
+    //close all the open groups
+    {
+        QHash<QString, H5::Group *>::iterator it;
+        for(it = d->group_hash.begin(); it != d->group_hash.end(); ++it) {
+            qDebug() << "closing group" << it.key();
+        it.value()->close();
+        }
+        d->group_hash.clear();
+    }
     
 //    for(auto it: d->dataset_hash.keys()) {
 //        qDebug() << "closing dataset" << it;
 //        H5Dclose(d->dataset_hash.value(it));
 //    }
     
-    d->dataset_hash.clear();
     d->file->close();
     delete d->file;
     d->file = nullptr;
@@ -252,19 +250,19 @@ void dtkIoDataModelHdf5::read(const QString &dataset_name, const dtkIoDataModel:
     case dtkIoDataModel::Int:
     {
         H5::DataType datatype( H5::PredType::NATIVE_INT);      
-        d->openDataset(dataset_name).read(values, datatype);
+        d->openDataset(dataset_name)->read(values, datatype);
         break;
     }
     case dtkIoDataModel::LongLongInt:
     {
         H5::DataType datatype( H5::PredType::NATIVE_LLONG);
-        d->openDataset(dataset_name).read(values, datatype);
+        d->openDataset(dataset_name)->read(values, datatype);
         break;
     }
     case dtkIoDataModel::Double:
     {
         H5::DataType datatype( H5::PredType::NATIVE_DOUBLE);            
-        d->openDataset(dataset_name).read(values, datatype);
+        d->openDataset(dataset_name)->read(values, datatype);
         break;
     }
     default:
@@ -285,19 +283,19 @@ void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel
     case dtkIoDataModel::Int:
     {
         H5::DataType datatype( H5::PredType::NATIVE_INT);      
-        d->createDataset(dataset_name, type, dimension, shape).write(values, datatype);
+        d->createDataset(dataset_name, type, dimension, shape)->write(values, datatype);
         break;
     }
     case dtkIoDataModel::LongLongInt:
     {
         H5::DataType datatype( H5::PredType::NATIVE_LLONG);
-        d->createDataset(dataset_name, type, dimension, shape).write(values, datatype);
+        d->createDataset(dataset_name, type, dimension, shape)->write(values, datatype);
         break;
     }
     case dtkIoDataModel::Double:
     {
         H5::DataType datatype( H5::PredType::NATIVE_DOUBLE);            
-        d->createDataset(dataset_name, type, dimension, shape).write(values, datatype);
+        d->createDataset(dataset_name, type, dimension, shape)->write(values, datatype);
         break;
     }
     default:
@@ -308,10 +306,10 @@ void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel
 
 void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {   
-    H5::DataSet dataset = d->openDataset(dataset_name);
+    H5::DataSet *dataset = d->openDataset(dataset_name);
 
     //the selection within the file dataset's dataspace
-    H5::DataSpace dataspace = dataset.getSpace();
+    H5::DataSpace dataspace = dataset->getSpace();
 	dataspace.selectHyperslab(H5S_SELECT_SET, count, offset, stride, block);
 
     //set the dimensions of values. memory dataspace and the selection within it
@@ -319,13 +317,13 @@ void dtkIoDataModelHdf5::write(const QString &dataset_name, const dtkIoDataModel
 
     switch(type) {
     case dtkIoDataModel::Int:
-        dataset.write(values, H5::PredType::NATIVE_INT, memspace, dataspace);
+        dataset->write(values, H5::PredType::NATIVE_INT, memspace, dataspace);
         break;
     case dtkIoDataModel::LongLongInt:
-        dataset.write(values, H5::PredType::NATIVE_LLONG, memspace, dataspace);
+        dataset->write(values, H5::PredType::NATIVE_LLONG, memspace, dataspace);
         break;
     case dtkIoDataModel::Double:
-        dataset.write(values, H5::PredType::NATIVE_DOUBLE, memspace, dataspace);
+        dataset->write(values, H5::PredType::NATIVE_DOUBLE, memspace, dataspace);
         break;
     default:
         dtkError() << "write method: Datatype not supported";
