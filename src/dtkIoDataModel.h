@@ -17,7 +17,11 @@
 #include "dtkIoExport.h"
 
 #include <QtCore>
-#include <dtkCore/dtkCorePlugin.h>
+#include <dtkCore>
+
+#if defined(DTK_BUILD_DISTRIBUTED)
+#include <dtkDistributed/dtkDistributedCommunicator.h>
+#endif
 
 class dtkIoDataModelPrivate;
 
@@ -48,6 +52,11 @@ public:
 /* public: */
 /* virtual void *copy(dtkIoDataModel *other) 0; */
 
+#if defined(DTK_BUILD_DISTRIBUTED)
+public:
+    virtual void setCommunicator(dtkDistributedCommunicator *comm);
+#endif
+    
 public:
     virtual void fileOpen(const QString& name, const FileMode& mode);
     virtual void fileClose(void);

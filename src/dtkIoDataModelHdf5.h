@@ -35,16 +35,17 @@ public:
 /*     void copy(dtkIoDataModelHdf5 *other); */
 
 public:
-    void fileOpen(const QString& name, const dtkIoDataModel::FileMode& mode);
-    void fileClose(void);
+    void fileOpen(const QString& name, const dtkIoDataModel::FileMode& mode)  override;
+    void fileClose(void)  override;
 
     
 public:
-    void read(const QString& dataset_name, const dtkIoDataModel::DataType& type, void *values);
+    void read(const QString& dataset_name, const dtkIoDataModel::DataType& type, void *values)  override;
     void write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
-               const int& dimension, quint64 *shape, void *values);
-    void writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values);
-    void writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values);
+               const int& dimension, quint64 *shape, void *values)  override;
+    void writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)  override;
+    void writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values)  override;
+//        void writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, quint64* values_coord, void *values);
     
 public:
     dtkIoDataModelHdf5Private *d;

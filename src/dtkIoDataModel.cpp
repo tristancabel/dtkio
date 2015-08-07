@@ -67,12 +67,22 @@ dtkIoDataModel::~dtkIoDataModel(void)
 }
 
 
+#if defined(DTK_BUILD_DISTRIBUTED)
+/*!
+ * set the IO communicator
+ */
+void dtkIoDataModel::setCommunicator(dtkDistributedCommunicator *comm)
+{
+    qDebug() << __func__ << "not implemented";
+}
+#endif
+
 /*!
  *  open a file using a fileMode
  */
 void dtkIoDataModel::fileOpen(const QString &name, const dtkIoDataModel::FileMode& mode)
 {
-    qDebug() << "dtkIoDataModel::fileOpen not implemented";
+    qDebug() << __func__ << "not implemented";
 }
 
 /*!
@@ -80,7 +90,7 @@ void dtkIoDataModel::fileOpen(const QString &name, const dtkIoDataModel::FileMod
  */
 void dtkIoDataModel::fileClose(void)
 {
-       qDebug() << "dtkIoDataModel::fileClose not implemented";
+    qDebug() << __func__ << "not implemented";
 }
 
 /*!
@@ -90,7 +100,7 @@ void dtkIoDataModel::fileClose(void)
 void dtkIoDataModel::read(const QString& dataset_name, const dtkIoDataModel::DataType& type,
                           void *values)
 {
-       qDebug() << "dtkIoDataModel::read not implemented";
+    qDebug() << __func__ << "not implemented";
 }
 
 /*!
@@ -102,7 +112,7 @@ void dtkIoDataModel::read(const QString& dataset_name, const dtkIoDataModel::Dat
  */
 void dtkIoDataModel::write(const QString& dataset_name, const dtkIoDataModel::DataType& type, const int& dimension, quint64 *shape, void *values)
 {
-    qDebug() << "dtkIoDataModel::write not implemented";
+    qDebug() << __func__ << "not implemented";
 }
 
 /*! write using a hyperslab doesn't support overlapping blocks!
@@ -117,7 +127,7 @@ void dtkIoDataModel::write(const QString& dataset_name, const dtkIoDataModel::Da
  */
 void dtkIoDataModel::writeHyperslab(const QString &dataset_name,const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {
-    qDebug() << "dtkIoDataModel::writeHyperslab not implemented";
+    qDebug() << __func__ << "not implemented";
 }
 
 /*! write using coordinates.
@@ -129,5 +139,5 @@ void dtkIoDataModel::writeHyperslab(const QString &dataset_name,const dtkIoDataM
  */
 void dtkIoDataModel::writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values)
 {
-    qDebug() << "dtkIoDataModel::writeByCoord not implemented";
+    qDebug() << __func__ << "not implemented";
 }

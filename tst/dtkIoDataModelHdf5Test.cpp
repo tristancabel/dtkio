@@ -70,7 +70,7 @@ void dtkIoDataModelHdf5TestCase::testRead(void)
     QCOMPARE(dset_data[0][1], 2);
     QCOMPARE(dset_data[1][0], 16);
     QCOMPARE(dset_data[5][0], 76);
-    QCOMPARE(dset_data[5][14], 90);
+    QCOMPARE(dset_data[5][14], 90); 
 }
 
 void dtkIoDataModelHdf5TestCase::testWrite(void)
@@ -152,7 +152,7 @@ void dtkIoDataModelHdf5TestCase::testTrunc(void)
     QCOMPARE(r_values[2][0], w_values2[2][0]);
     QCOMPARE(r_values[2][1], w_values2[2][1]);
     QCOMPARE(r_values[2][2], w_values2[2][2]);
-    QCOMPARE(r_values[2][3], w_values2[2][3]);
+    QCOMPARE(r_values[2][3], w_values2[2][3]); 
 }
 
 
@@ -313,7 +313,7 @@ void dtkIoDataModelHdf5TestCase::testReadWriteGroups(void)
     QCOMPARE(r_values[1][0], w_values[1][0]);
     QCOMPARE(r_values[1][1], w_values[1][1]);
     QCOMPARE(r_values[1][2], w_values[1][2]);
-
+  
 }
 
 void dtkIoDataModelHdf5TestCase::testReadWriteExistingGroups(void)
