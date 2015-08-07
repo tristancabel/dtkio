@@ -97,7 +97,19 @@ enable_testing()
 ## #################################################################
 
 find_package(dtk REQUIRED)
-find_package(HDF5 REQUIRED COMPONENTS CXX)
+find_package(HDF5 REQUIRED COMPONENTS CXX C)
+
+if(DTK_BUILD_DISTRIBUTED)
+  find_package(MPI REQUIRED)
+  mark_as_advanced(MPI_EXTRA_LIBRARY)
+  mark_as_advanced(MPI_LIBRARY)
+  
+  include_directories(${MPI_INCLUDE_PATH})
+  set(COMPILE_FLAGS ${COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+
+  set(CMAKE_REQUIRED_INCLUDES "${MPI_INCLUDE_PATH}")
+  set(CMAKE_REQUIRED_LIBRARIES "${MPI_LIBRARIES}")
+endif()
 
 include_directories(${dtk_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
 

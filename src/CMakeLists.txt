@@ -33,6 +33,19 @@ set(${PROJECT_NAME}_SOURCES
   dtkIoDataModel.cpp
   dtkIoDataModelHdf5.cpp)
 
+
+if(DTK_BUILD_DISTRIBUTED)
+  set(${PROJECT_NAME}_HEADERS
+    ${${PROJECT_NAME}_HEADERS}
+    dtkIoDataModelPHdf5.h
+    )
+
+  set(${PROJECT_NAME}_SOURCES
+    ${${PROJECT_NAME}_SOURCES}
+    dtkIoDataModelPHdf5.cpp
+    )
+endif()
+
 ## #################################################################
 ## Build rules
 ## #################################################################
@@ -53,6 +66,12 @@ target_link_libraries(${PROJECT_NAME} Qt5::Core)
 
 target_link_libraries(${PROJECT_NAME} dtkCore)
 target_link_libraries(${PROJECT_NAME} dtkLog)
+
+if(DTK_BUILD_DISTRIBUTED)
+  target_link_libraries(${PROJECT_NAME} dtkDistributed)
+  target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES})
+endif(DTK_BUILD_DISTRIBUTED)
+
 target_link_libraries(${PROJECT_NAME} ${HDF5_CXX_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${HDF5_LIBRARIES})
 
