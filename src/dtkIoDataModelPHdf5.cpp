@@ -260,17 +260,17 @@ void dtkIoDataModelPHdf5::read(const QString &dataset_name, const dtkIoDataModel
     switch(type) {
     case dtkIoDataModel::Int:
     {
-        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_INT, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT, values);
+        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
         break;
     }
     case dtkIoDataModel::LongLongInt:
     {
-        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_LLONG, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT, values);
+        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
         break;
     }
     case dtkIoDataModel::Double:
     {
-        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_DOUBLE, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT, values);
+        H5Dread(d->datasetId(dataset_name), H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
         break;
     }
     default:
@@ -319,23 +319,26 @@ void dtkIoDataModelPHdf5::writeHyperslab(const QString &dataset_name, const dtkI
     hid_t dataset_id = d->datasetId(dataset_name);
     
     //the selection within the file dataset's dataspace
-    hid_t dataspace = H5Dget_space(dataset_id);
-    if(H5Sselect_hyperslab(dataspace, H5S_SELECT_SET, offset, stride, count, block)<0)
+    hid_t file_dataspace = H5Dget_space(dataset_id);
+    if(H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET, offset, stride, count, block)<0)
         dtkError() << "ERROR selecting hyperslab" << dataset_name;
 
     //set the dimensions of values. memory dataspace and the selection within it
-    hid_t memspace = H5Screate_simple(H5Sget_simple_extent_ndims(dataspace), values_shape, NULL);    
+    hid_t values_dataspace = H5Screate_simple(H5Sget_simple_extent_ndims(file_dataspace),
+                                              values_shape, NULL);    
 
     switch(type) {
     case dtkIoDataModel::Int:
-        // TODO put d->prop_list_id instead of H5P_DEFAULT ????????
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, memspace, dataspace, H5P_DEFAULT, values);
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, values_dataspace,
+                             file_dataspace, H5P_DEFAULT, values);
         break;
     case dtkIoDataModel::LongLongInt:
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, memspace, dataspace, H5P_DEFAULT, values);
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, values_dataspace,
+                             file_dataspace, H5P_DEFAULT, values);
         break;
     case dtkIoDataModel::Double:
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, memspace, dataspace, H5P_DEFAULT, values);
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, values_dataspace,
+                             file_dataspace, H5P_DEFAULT, values);
         break;
     default:
         dtkError() << "write method: Datatype not supported";

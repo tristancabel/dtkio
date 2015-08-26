@@ -109,6 +109,8 @@ if(DTK_BUILD_DISTRIBUTED)
 
   set(CMAKE_REQUIRED_INCLUDES "${MPI_INCLUDE_PATH}")
   set(CMAKE_REQUIRED_LIBRARIES "${MPI_LIBRARIES}")
+
+  add_definitions(-DADD_PHDF5)
 endif()
 
 include_directories(${dtk_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})

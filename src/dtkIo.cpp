@@ -19,6 +19,9 @@
 
 #include "dtkIoDataModelHdf5.h"
 
+#ifdef ADD_PHDF5
+#include "dtkIoDataModelPHdf5.h"
+#endif
 
 namespace dtkIo
 {
@@ -32,6 +35,9 @@ namespace dtkIo
         
         void initialize(const QString& path) {
             pluginFactory().record("Hdf5", dtkIoDataModelHdf5Creator);
+#ifdef ADD_PHDF5
+            pluginFactory().record("PHdf5", dtkIoDataModelPHdf5Creator);
+#endif
             pluginManager().initialize(path);
         }
 
