@@ -52,6 +52,7 @@ void dtkIoDataModelHdf5TestCase::testCreate(void)
     data_model->fileClose();
 
     QVERIFY(fileExists(file_name));
+    delete data_model;
 }
 
 void dtkIoDataModelHdf5TestCase::testRead(void)
@@ -71,6 +72,7 @@ void dtkIoDataModelHdf5TestCase::testRead(void)
     QCOMPARE(dset_data[1][0], 16);
     QCOMPARE(dset_data[5][0], 76);
     QCOMPARE(dset_data[5][14], 90); 
+    delete data_model;
 }
 
 void dtkIoDataModelHdf5TestCase::testWrite(void)
@@ -105,6 +107,7 @@ void dtkIoDataModelHdf5TestCase::testWrite(void)
     QCOMPARE(r_values[1][1], w_values[1][1]);
     QCOMPARE(r_values[1][2], w_values[1][2]);
 
+    delete data_model;
 }
 
 void dtkIoDataModelHdf5TestCase::testTrunc(void)
@@ -153,6 +156,8 @@ void dtkIoDataModelHdf5TestCase::testTrunc(void)
     QCOMPARE(r_values[2][1], w_values2[2][1]);
     QCOMPARE(r_values[2][2], w_values2[2][2]);
     QCOMPARE(r_values[2][3], w_values2[2][3]); 
+
+    delete data_model;
 }
 
 
@@ -219,6 +224,7 @@ void dtkIoDataModelHdf5TestCase::testWriteHyperslab(void)
     QCOMPARE(r_data[4][4], w_subdata[1][0]);
     QCOMPARE(r_data[4][5], w_subdata[1][1]);
 
+    delete data_model;
 }
 
 
@@ -279,6 +285,7 @@ void dtkIoDataModelHdf5TestCase::testWriteByCoord(void)
     QCOMPARE(r_data[2][3], w_subdata[2]);
     QCOMPARE(r_data[4][1], w_subdata[3]);
 
+    delete data_model;
 }
 
 
@@ -313,7 +320,8 @@ void dtkIoDataModelHdf5TestCase::testReadWriteGroups(void)
     QCOMPARE(r_values[1][0], w_values[1][0]);
     QCOMPARE(r_values[1][1], w_values[1][1]);
     QCOMPARE(r_values[1][2], w_values[1][2]);
-  
+
+    delete data_model;
 }
 
 void dtkIoDataModelHdf5TestCase::testReadWriteExistingGroups(void)
@@ -364,6 +372,7 @@ void dtkIoDataModelHdf5TestCase::testReadWriteExistingGroups(void)
     QCOMPARE(r_values2[1][1], w_values2[1][1]);
     QCOMPARE(r_values2[1][2], w_values2[1][2]);
 
+    delete data_model;
 }
 
 
