@@ -27,6 +27,7 @@ private slots:
 private slots:
     void testCreate(void);
     void testRead(void);
+    void testWriteHyperslabRow(void);
     
 private slots:
     virtual void cleanupTestCase(void);

@@ -8,6 +8,7 @@
 #include <dtkDistributed>
 #include <dtkIo>
 
+#include <unistd.h>
 
 /*
 
@@ -23,9 +24,13 @@
     ;
 */
 
+#define NPROC 2
+
 #define DTK_IO_PHDF5_INIT_PLUGIN \
         dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("PHdf5"); \
-        data_model->setCommunicator(dtkDistributed::app()->communicator()); 
+        data_model->setCommunicator(dtkDistributed::app()->communicator()); \
+        int rank = dtkDistributed::app()->communicator()->rank(); \
+        int size = dtkDistributed::app()->communicator()->size();
 
 static bool fileExists(QString file) {
     QFileInfo checkFile(file);
@@ -115,7 +120,8 @@ void dtkIoDataModelPHdf5TestCase::testWrite(void)
     QCOMPARE(r_values[1][2], w_values[1][2]);
 
 }
-
+*/
+/*
 void dtkIoDataModelPHdf5TestCase::testTrunc(void)
 {
     dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("PHdf5");
@@ -163,74 +169,88 @@ void dtkIoDataModelPHdf5TestCase::testTrunc(void)
     QCOMPARE(r_values[2][2], w_values2[2][2]);
     QCOMPARE(r_values[2][3], w_values2[2][3]); 
 }
+*/
 
-
-#define DIM0_TESTSUBSET 8
-#define DIM1_TESTSUBSET 10
-void dtkIoDataModelPHdf5TestCase::testWriteHyperslab(void)
+#define HYSL_NX 8
+#define HYSL_NY 8
+class testWriteHyperslabRowRunnable : public QRunnable
 {
-    dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("PHdf5");
-    QString file_name = "testWriteSubset.h5";
-    if(fileExists(file_name)) {
-        //delete the file
-        QFile::remove(file_name);
-    }
-
-    // Write initial data
-    data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
-    double w_data[DIM0_TESTSUBSET][DIM1_TESTSUBSET] ;
-    QString dataset_name = "/testsubset";
-    quint64 shape[2] = {DIM0_TESTSUBSET, DIM1_TESTSUBSET};
-    
-    for(int i=0; i<DIM0_TESTSUBSET; ++i) {
-        for(int j=0; j<DIM1_TESTSUBSET; ++j)
-        {
-            if(j< (DIM0_TESTSUBSET/2))
-                w_data[i][j] = 1.0;
-            else
-                w_data[i][j] = 2.0;
+public:
+    void run(void)
+    {
+        DTK_IO_PHDF5_INIT_PLUGIN
+        QString file_name = "testParalWriteHyperslabRow.h5";
+        QString dataset_name = "/hyperslabRow";
+        //first delete the file if it already exist
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        if(fileExists(file_name)) {
+            //delete the file
+            QFile::remove(file_name);
         }
+        DTK_DISTRIBUTED_END_GLOBAL
+        
+        // next write the Hyperslab
+        data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+
+        //call write with no values to create the dataset
+
+        quint64 shape_global[2] = { HYSL_NX, HYSL_NY};
+        data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape_global);
+
+        //now prepare the data and write the hyperslab
+        quint64 count_local[2] = {HYSL_NX/NPROC, HYSL_NY};
+        int local_size = (HYSL_NX/NPROC)* HYSL_NY;
+        quint64 offset[2];
+        offset[0] = rank*count_local[0];
+        offset[1] = 0;
+        quint64 block[2] = {1,1};
+        quint64 stride[2] = {1,1};
+        
+        double *data_local = new double[local_size];
+        for(int i=0; i<local_size; ++i)
+        {
+            data_local[i] = rank*10.0;
+        }
+
+/*        if(rank ==0) {
+            int i = 0;
+            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
+            while (0 == i)
+                sleep(5);
+        }
+          
+        if(rank == 1) {
+            int i = 0;
+            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
+            while (0 == i)
+                sleep(5);
+        }
+*/      
+        data_model->writeHyperslab(dataset_name, dtkIoDataModel::Double, offset, stride, count_local, block, count_local, data_local);
+        data_model->fileClose();
+
+        //lastly, check written data
+        double r_data[HYSL_NX*HYSL_NY] ;
+        data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+        data_model->read(dataset_name, dtkIoDataModel::Double, r_data);
+        data_model->fileClose();
+
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        for(int proc=0; proc<NPROC; ++proc)
+        {
+            for(int i=0; i<count_local[0]*count_local[1]; ++i)
+            {
+                QCOMPARE(r_data[i + proc*count_local[0]*HYSL_NY], 10.0*proc);
+            }
+        }
+        DTK_DISTRIBUTED_END_GLOBAL
+
+        delete[] data_local;
+
     }
-    data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape, w_data);
-    data_model->fileClose();
-    QVERIFY(fileExists(file_name));
+};
 
-    // Write Hyperslab changes
-    data_model->fileOpen(file_name, dtkIoDataModel::ReadWrite);
-
-    double w_subdata[2][2] = { {5.0, 6.0} , {7.0, 8.0} };
-    quint64 offset[2] = {3,4};
-    quint64 count[2] = {2,2};
-    quint64 block[2] = {1,1};
-    quint64 stride[2] = {1,1};
-    quint64 values_shape[2] = {2,2};
-    
-    data_model->writeHyperslab(dataset_name, dtkIoDataModel::Double, offset, stride, count, block, values_shape, w_subdata);
-    data_model->fileClose();
-
-
-    //check written data
-    double r_data[DIM0_TESTSUBSET][DIM1_TESTSUBSET] ;
-    data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
-    data_model->read(dataset_name, dtkIoDataModel::Double, r_data);
-    data_model->fileClose();
-    
-    QCOMPARE(r_data[0][0], 1.0);
-    QCOMPARE(r_data[0][1], 1.0);
-    QCOMPARE(r_data[0][8], 2.0);
-    QCOMPARE(r_data[0][9], 2.0);
-    QCOMPARE(r_data[7][0], 1.0);
-    QCOMPARE(r_data[7][1], 1.0);
-    QCOMPARE(r_data[7][8], 2.0);
-    QCOMPARE(r_data[7][9], 2.0);
-    QCOMPARE(r_data[3][4], w_subdata[0][0]);
-    QCOMPARE(r_data[3][5], w_subdata[0][1]);
-    QCOMPARE(r_data[4][4], w_subdata[1][0]);
-    QCOMPARE(r_data[4][5], w_subdata[1][1]);
-
-}
-
-
+/*
 void dtkIoDataModelPHdf5TestCase::testWriteByCoord(void)
 {
     dtkIoDataModel *data_model = dtkIo::dataModel::pluginFactory().create("PHdf5");

@@ -190,6 +190,9 @@ void dtkIoDataModelPHdf5::fileOpen(const QString &file_name, const dtkIoDataMode
         
         switch (mode) {
         case dtkIoDataModel::Trunc:
+            //           qDebug() << "opening::trunc " << file_name;
+            //qDebug() << file_name.toUtf8();
+            //qDebug() << file_name.toUtf8().constData();
             d->file_id = H5Fcreate(file_name.toUtf8().constData(), H5F_ACC_TRUNC,
                                    H5P_DEFAULT, d->prop_list_id);
 
@@ -287,27 +290,29 @@ void dtkIoDataModelPHdf5::read(const QString &dataset_name, const dtkIoDataModel
 void dtkIoDataModelPHdf5::write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
                                const int& dimension, quint64 *shape, void *values)
 {
+    d->status=0;
     hid_t dataset_id = d->datasetId(dataset_name, type, dimension, shape);
-    switch(type) {
-    case dtkIoDataModel::Int:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
-        break;
+    if(values) {
+        switch(type) {
+        case dtkIoDataModel::Int:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
+            break;
+        }
+        case dtkIoDataModel::LongLongInt:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
+            break;
+        }
+        case dtkIoDataModel::Double:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
+            break;
+        }
+        default:
+            dtkError() << "write method: Datatype not supported";
+        };
     }
-    case dtkIoDataModel::LongLongInt:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
-        break;
-    }
-    case dtkIoDataModel::Double:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, d->prop_list_id ,values);
-        break;
-    }
-    default:
-        dtkError() << "write method: Datatype not supported";
-    };
-
     if(d->status<0)
         dtkError() << "error writing" << dataset_name;
 }
@@ -317,12 +322,13 @@ void dtkIoDataModelPHdf5::write(const QString& dataset_name, const dtkIoDataMode
 void dtkIoDataModelPHdf5::writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
 {   
     hid_t dataset_id = d->datasetId(dataset_name);
-    
+
     //the selection within the file dataset's dataspace
     hid_t file_dataspace = H5Dget_space(dataset_id);
+
     if(H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET, offset, stride, count, block)<0)
         dtkError() << "ERROR selecting hyperslab" << dataset_name;
-
+        
     //set the dimensions of values. memory dataspace and the selection within it
     hid_t values_dataspace = H5Screate_simple(H5Sget_simple_extent_ndims(file_dataspace),
                                               values_shape, NULL);    
@@ -330,15 +336,15 @@ void dtkIoDataModelPHdf5::writeHyperslab(const QString &dataset_name, const dtkI
     switch(type) {
     case dtkIoDataModel::Int:
         d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, values_dataspace,
-                             file_dataspace, H5P_DEFAULT, values);
+                             file_dataspace, d->prop_list_id, values);
         break;
     case dtkIoDataModel::LongLongInt:
         d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, values_dataspace,
-                             file_dataspace, H5P_DEFAULT, values);
+                             file_dataspace, d->prop_list_id, values);
         break;
     case dtkIoDataModel::Double:
         d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, values_dataspace,
-                             file_dataspace, H5P_DEFAULT, values);
+                             file_dataspace, d->prop_list_id, values);
         break;
     default:
         dtkError() << "write method: Datatype not supported";

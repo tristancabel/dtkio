@@ -37,7 +37,7 @@ void dtkIoDataModelPHdf5TestCase::initTestCase(void)
     dtkIo::dataModel::initialize(settings.value("plugins").toString());
     settings.endGroup();
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 1; i < NPROC; ++i) {
         dtkDistributed::policy()->addHost("localhost");
     }
 
@@ -60,10 +60,15 @@ void dtkIoDataModelPHdf5TestCase::testRead(void)
 {
     QRunnable *test = new testReadRunnable();
     dtkDistributed::exec(test);
-    delete test;
-    
+    delete test;    
 }
 
+void dtkIoDataModelPHdf5TestCase::testWriteHyperslabRow(void)
+{
+    QRunnable *test = new testWriteHyperslabRowRunnable();
+    dtkDistributed::exec(test);
+    delete test;    
+}
 
 void dtkIoDataModelPHdf5TestCase::cleanupTestCase(void)
 {
