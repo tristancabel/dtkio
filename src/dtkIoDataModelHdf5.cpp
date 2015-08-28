@@ -252,27 +252,29 @@ void dtkIoDataModelHdf5::read(const QString &dataset_name, const dtkIoDataModel:
 void dtkIoDataModelHdf5::write(const QString& dataset_name, const dtkIoDataModel::DataType& type,
                                const int& dimension, quint64 *shape, void *values)
 {
+    d->status=0;
     hid_t dataset_id = d->datasetId(dataset_name, type, dimension, shape);
-    switch(type) {
-    case dtkIoDataModel::Int:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
-        break;
-    }
-    case dtkIoDataModel::LongLongInt:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
-        break;
-    }
-    case dtkIoDataModel::Double:
-    {
-        d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
-        break;
-    }
-    default:
-        dtkError() << "write method: Datatype not supported";
-    };
-
+    if(values) {
+        switch(type) {
+        case dtkIoDataModel::Int:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
+            break;
+        }
+        case dtkIoDataModel::LongLongInt:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
+            break;
+        }
+        case dtkIoDataModel::Double:
+        {
+            d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, values);
+            break;
+        }
+        default:
+            dtkError() << "write method: Datatype not supported";
+        };
+    }        
     if(d->status<0)
         dtkError() << "error writing" << dataset_name;
 }

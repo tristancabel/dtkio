@@ -105,6 +105,7 @@ void dtkIoDataModel::read(const QString& dataset_name, const dtkIoDataModel::Dat
 
 /*!
  *  write a dataset from its name and type into the open file
+ * if you call this function with nullptr in values, it will create a dataset but not write any data in it
  * type : type of data
  * dimension : number of dimensions of the data to be written and dimension of shape
  * shape : number of elements in each dimension : ex dimension = 2 , shape = {3,4} .
