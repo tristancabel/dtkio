@@ -72,7 +72,6 @@ if(DTK_BUILD_DISTRIBUTED)
   target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES})
 endif(DTK_BUILD_DISTRIBUTED)
 
-target_link_libraries(${PROJECT_NAME} ${HDF5_CXX_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${HDF5_LIBRARIES})
 
 ## #################################################################

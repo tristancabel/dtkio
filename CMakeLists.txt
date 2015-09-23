@@ -97,7 +97,7 @@ enable_testing()
 ## #################################################################
 
 find_package(dtk REQUIRED)
-find_package(HDF5 REQUIRED COMPONENTS CXX C)
+find_package(HDF5 REQUIRED COMPONENTS C)
 
 if(DTK_BUILD_DISTRIBUTED)
   find_package(MPI REQUIRED)
