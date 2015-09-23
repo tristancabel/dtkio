@@ -70,6 +70,20 @@ void dtkIoDataModelPHdf5TestCase::testWriteHyperslabRow(void)
     delete test;    
 }
 
+void dtkIoDataModelPHdf5TestCase::testWriteByCoord(void)
+{
+    QRunnable *test = new testWriteByCoordRunnable();
+    dtkDistributed::exec(test);
+    delete test;    
+}
+
+void dtkIoDataModelPHdf5TestCase::testWriteByCoordGroup(void)
+{
+    QRunnable *test = new testWriteByCoordGroupRunnable();
+    dtkDistributed::exec(test);
+    delete test;    
+}
+
 void dtkIoDataModelPHdf5TestCase::cleanupTestCase(void)
 {
     dtkDistributed::unspawn();

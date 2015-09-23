@@ -28,7 +28,8 @@ private slots:
     void testCreate(void);
     void testRead(void);
     void testWriteHyperslabRow(void);
-    
+    void testWriteByCoord(void);
+    void testWriteByCoordGroup(void);    
 private slots:
     virtual void cleanupTestCase(void);
     virtual void cleanup(void);

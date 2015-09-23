@@ -320,7 +320,8 @@ void dtkIoDataModelPHdf5::write(const QString& dataset_name, const dtkIoDataMode
 
 //hyperslab write
 void dtkIoDataModelPHdf5::writeHyperslab(const QString &dataset_name, const dtkIoDataModel::DataType& type, quint64 *offset, quint64 *stride, quint64 *count, quint64 *block, quint64 *values_shape, void *values)
-{   
+{
+    d->status=0;
     hid_t dataset_id = d->datasetId(dataset_name);
 
     //the selection within the file dataset's dataspace
@@ -352,36 +353,45 @@ void dtkIoDataModelPHdf5::writeHyperslab(const QString &dataset_name, const dtkI
     if(d->status<0)
         dtkError() << "error writing hyperslab" << dataset_name;
         
-       
+    H5Sclose(file_dataspace);
+    H5Sclose(values_dataspace);
 }
 
-/*
+
 //point selection write
 // assuming dataset and values have the same shape and the points values are contiguous in values
 void dtkIoDataModelPHdf5::writeByCoord(const QString &dataset_name, const dtkIoDataModel::DataType& type, const quint64& nb_points, quint64* points_coord, void *values) 
-{   
-    H5::DataSet *dataset = d->openDataset(dataset_name);
-
+{
+    d->status=0;
+    hid_t dataset_id = d->datasetId(dataset_name);
+    
     //the selection within the file dataset's dataspace
-    H5::DataSpace file_dataspace = dataset->getSpace();
-    file_dataspace.selectElements( H5S_SELECT_SET, nb_points, points_coord);
+    hid_t file_dataspace = H5Dget_space(dataset_id);
+    if(H5Sselect_elements(file_dataspace, H5S_SELECT_SET, nb_points, points_coord)<0)
+        dtkError() << "ERROR selecting hyperslab" << dataset_name;
 
     //set the dimensions of values. memory dataspace and the selection within it
-    H5::DataSpace values_dataspace(1, &nb_points);    
+    hid_t values_dataspace = H5Screate_simple(1, &nb_points, NULL);    
 
     switch(type) {
     case dtkIoDataModel::Int:
-        dataset->write(values, H5::PredType::NATIVE_INT, values_dataspace, file_dataspace);
+        // TODO put d->prop_list_id instead of H5P_DEFAULT ????????
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_INT, values_dataspace, file_dataspace, d->prop_list_id, values);
         break;
     case dtkIoDataModel::LongLongInt:
-        dataset->write(values, H5::PredType::NATIVE_LLONG, values_dataspace, file_dataspace);
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_LLONG, values_dataspace, file_dataspace, d->prop_list_id, values);
         break;
     case dtkIoDataModel::Double:
-        dataset->write(values, H5::PredType::NATIVE_DOUBLE, values_dataspace, file_dataspace);
+        d->status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, values_dataspace, file_dataspace, d->prop_list_id, values);
         break;
     default:
         dtkError() << "write method: Datatype not supported";
     };
+    if(d->status<0)
+        dtkError() << "error writing hyperslab" << dataset_name;
+
+    H5Sclose(file_dataspace);
+    H5Sclose(values_dataspace);
 }
 
-*/
+

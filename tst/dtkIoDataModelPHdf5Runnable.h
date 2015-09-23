@@ -193,7 +193,6 @@ public:
         data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
 
         //call write with no values to create the dataset
-
         quint64 shape_global[2] = { HYSL_NX, HYSL_NY};
         data_model->write(dataset_name, dtkIoDataModel::Double, 2, shape_global);
 
@@ -212,20 +211,6 @@ public:
             data_local[i] = rank*10.0;
         }
 
-/*        if(rank ==0) {
-            int i = 0;
-            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
-            while (0 == i)
-                sleep(5);
-        }
-          
-        if(rank == 1) {
-            int i = 0;
-            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
-            while (0 == i)
-                sleep(5);
-        }
-*/      
         data_model->writeHyperslab(dataset_name, dtkIoDataModel::Double, offset, stride, count_local, block, count_local, data_local);
         data_model->fileClose();
 
@@ -246,6 +231,194 @@ public:
         DTK_DISTRIBUTED_END_GLOBAL
 
         delete[] data_local;
+
+    }
+};
+
+#define NB_POINTS 64
+class testWriteByCoordRunnable : public QRunnable
+{
+public:
+    void run(void)
+    {
+        DTK_IO_PHDF5_INIT_PLUGIN
+        QString file_name = "testParalWriteByCoord.h5";
+        QString dataset_name = "/dataByCoord";
+        //first delete the file if it already exist
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        if(fileExists(file_name)) {
+            //delete the file
+            QFile::remove(file_name);
+        }
+        DTK_DISTRIBUTED_END_GLOBAL
+        
+        // next write the data
+        data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+
+        //call write with no values to create the dataset
+        quint64 shape_global[1] = {NB_POINTS};
+        data_model->write(dataset_name, dtkIoDataModel::Double, 1, shape_global);
+
+
+/*  proc 0              proc 1
+    0 0 0 0 X 0 X X     X X X X 1 X 1 1
+    X 0 0 0 0 0 0 0     1 X X X X X X X
+    0 0 0 X 0 0 X 0     X X X 1 X X 1 X
+    0 X 0 0 0 0 X 0     X 1 X X X X 1 X
+    X 0 X X X 0 X X     1 X 1 1 1 X 1 1
+    0 X 0 X X X X X     X 1 X 1 1 1 1 1
+    X X 0 X X 0 X X     1 1 X 1 1 X 1 1
+    X X X X X X X X     1 1 1 1 1 1 1 1
+ */
+        
+        //now prepare the data and write the hyperslab
+        quint64 nb_points_local=0;
+        quint64 *points_coord;
+        if(rank==0)
+        {
+            nb_points_local = 30;
+            //nb_points_local*dimension
+            points_coord = new quint64[nb_points_local*1] {0, 1, 2, 3, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                                           18, 20, 21, 23, 24, 26, 27, 28, 29, 31, 33, 37, 40, 42, 50, 53};
+        }
+        if(rank==1)
+        {
+            nb_points_local = 34;
+            points_coord = new quint64[nb_points_local*1] {4, 6, 7, 8, 19, 22, 25, 30, 32, 34, 35, 36, 38, 39, 41, 43, 44,
+                                                           45, 46, 47, 48, 49, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63};
+        }
+        
+        double *data_local = new double[nb_points_local];
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            data_local[i] = rank*NB_POINTS+i;
+        }
+
+/*        if(rank ==0) {
+            int i = 0;
+            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
+            while (0 == i)
+                sleep(5);
+        }
+          
+        if(rank == 1) {
+            int i = 0;
+            printf("PID %d , rank %d ready for attach\n", getpid(), rank);
+            while (0 == i)
+                sleep(5);
+        }
+*/
+    
+        data_model->writeByCoord(dataset_name, dtkIoDataModel::Double, nb_points_local, points_coord, data_local);
+        data_model->fileClose();
+
+        //lastly, check written data
+        double r_data[HYSL_NX*HYSL_NY] ;
+        data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+        data_model->read(dataset_name, dtkIoDataModel::Double, r_data);
+        data_model->fileClose();
+
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            QCOMPARE(r_data[points_coord[i]], i*1.0);
+        }
+        
+        quint64 points_coord_proc1[34] = {4, 6, 7, 8, 19, 22, 25, 30, 32, 34, 35, 36, 38, 39, 41, 43, 44,                                                                            45, 46, 47, 48, 49, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63};
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            QCOMPARE(r_data[points_coord_proc1[i]], (NB_POINTS+i)*1.0);
+        }
+        DTK_DISTRIBUTED_END_GLOBAL
+
+        delete[] data_local;
+        delete[] points_coord;
+
+    }
+};
+
+class testWriteByCoordGroupRunnable : public QRunnable
+{
+public:
+    void run(void)
+    {
+        DTK_IO_PHDF5_INIT_PLUGIN
+        QString file_name = "testParalWriteByCoordGroup.h5";
+        QString dataset_name = "/thegroup/dataByCoord";
+        //first delete the file if it already exist
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        if(fileExists(file_name)) {
+            //delete the file
+            QFile::remove(file_name);
+        }
+        DTK_DISTRIBUTED_END_GLOBAL
+        
+        // next write the data
+        data_model->fileOpen(file_name, dtkIoDataModel::Trunc);
+
+        //call write with no values to create the dataset
+        quint64 shape_global[1] = {NB_POINTS};
+        data_model->write(dataset_name, dtkIoDataModel::Double, 1, shape_global);
+
+
+/*  proc 0              proc 1
+    0 0 0 0 X 0 X X     X X X X 1 X 1 1
+    X 0 0 0 0 0 0 0     1 X X X X X X X
+    0 0 0 X 0 0 X 0     X X X 1 X X 1 X
+    0 X 0 0 0 0 X 0     X 1 X X X X 1 X
+    X 0 X X X 0 X X     1 X 1 1 1 X 1 1
+    0 X 0 X X X X X     X 1 X 1 1 1 1 1
+    X X 0 X X 0 X X     1 1 X 1 1 X 1 1
+    X X X X X X X X     1 1 1 1 1 1 1 1
+ */
+        
+        //now prepare the data and write the hyperslab
+        quint64 nb_points_local=0;
+        quint64 *points_coord;
+        if(rank==0)
+        {
+            nb_points_local = 30;
+            //nb_points_local*dimension
+            points_coord = new quint64[nb_points_local*1] {0, 1, 2, 3, 5, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                                                           18, 20, 21, 23, 24, 26, 27, 28, 29, 31, 33, 37, 40, 42, 50, 53};
+        }
+        if(rank==1)
+        {
+            nb_points_local = 34;
+            points_coord = new quint64[nb_points_local*1] {4, 6, 7, 8, 19, 22, 25, 30, 32, 34, 35, 36, 38, 39, 41, 43, 44,
+                                                           45, 46, 47, 48, 49, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63};
+        }
+        
+        double *data_local = new double[nb_points_local];
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            data_local[i] = rank*1.0;
+        }
+    
+        data_model->writeByCoord(dataset_name, dtkIoDataModel::Double, nb_points_local, points_coord, data_local);
+        data_model->fileClose();
+
+        //lastly, check written data
+        double r_data[HYSL_NX*HYSL_NY] ;
+        data_model->fileOpen(file_name, dtkIoDataModel::ReadOnly);
+        data_model->read(dataset_name, dtkIoDataModel::Double, r_data);
+        data_model->fileClose();
+
+        DTK_DISTRIBUTED_BEGIN_GLOBAL
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            QCOMPARE(r_data[points_coord[i]], 0.0);
+        }
+        
+        quint64 points_coord_proc1[34] = {4, 6, 7, 8, 19, 22, 25, 30, 32, 34, 35, 36, 38, 39, 41, 43, 44,                                                                            45, 46, 47, 48, 49, 51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63};
+        for(int i=0; i<nb_points_local; ++i)
+        {
+            QCOMPARE(r_data[points_coord_proc1[i]], 1.0);
+        }
+        DTK_DISTRIBUTED_END_GLOBAL
+
+        delete[] data_local;
+        delete[] points_coord;
 
     }
 };
