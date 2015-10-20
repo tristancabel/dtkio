@@ -190,9 +190,6 @@ void dtkIoDataModelPHdf5::fileOpen(const QString &file_name, const dtkIoDataMode
         
         switch (mode) {
         case dtkIoDataModel::Trunc:
-            //           qDebug() << "opening::trunc " << file_name;
-            //qDebug() << file_name.toUtf8();
-            //qDebug() << file_name.toUtf8().constData();
             d->file_id = H5Fcreate(file_name.toUtf8().constData(), H5F_ACC_TRUNC,
                                    H5P_DEFAULT, d->prop_list_id);
 
@@ -236,7 +233,7 @@ void dtkIoDataModelPHdf5::fileClose(void)
     {
         QHash<QString, hid_t>::iterator it;
         for(it = d->dataset_hash.begin(); it != d->dataset_hash.end(); ++it) {
-            qDebug() << "closing dataset" << it.key();
+            dtkDebug() << "closing dataset" << it.key();
             H5Dclose(it.value());
         }
         d->dataset_hash.clear();
@@ -246,7 +243,7 @@ void dtkIoDataModelPHdf5::fileClose(void)
     {
         QHash<QString, hid_t>::iterator it;
         for(it = d->group_hash.begin(); it != d->group_hash.end(); ++it) {
-            qDebug() << "closing group" << it.key();
+            dtkDebug() << "closing group" << it.key();
             H5Gclose(it.value());
         }
         d->group_hash.clear();

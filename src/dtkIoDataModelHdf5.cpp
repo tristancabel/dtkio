@@ -198,7 +198,7 @@ void dtkIoDataModelHdf5::fileClose(void)
     {
         QHash<QString, hid_t>::iterator it;
         for(it = d->dataset_hash.begin(); it != d->dataset_hash.end(); ++it) {
-            qDebug() << "closing dataset" << it.key();
+            dtkDebug() << "closing dataset" << it.key();
             H5Dclose(it.value());
         }
         d->dataset_hash.clear();
@@ -208,7 +208,7 @@ void dtkIoDataModelHdf5::fileClose(void)
     {
         QHash<QString, hid_t>::iterator it;
         for(it = d->group_hash.begin(); it != d->group_hash.end(); ++it) {
-            qDebug() << "closing group" << it.key();
+            dtkDebug() << "closing group" << it.key();
             H5Gclose(it.value());
         }
         d->group_hash.clear();
