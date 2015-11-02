@@ -76,10 +76,10 @@ hid_t& dtkIoDataModelHdf5Private::datasetId(const QString& dataset_name,
             
             if ( dataset_name_split.length() > 0) {
                 //the dataset is in a group, we need to open or create groups
-                QString path = "/";
+                QString path = "" ;
                 for(auto it: dataset_name_split)
                 {
-                    path = path % it;
+                    path = path % "/" % it;
                     if(!group_hash.contains(path)) {
                         if(H5Lexists(file_id, path.toUtf8().constData(), H5P_DEFAULT))  //The group exists
                             group_hash[path] = H5Gopen(file_id, path.toUtf8().constData(), H5P_DEFAULT);
