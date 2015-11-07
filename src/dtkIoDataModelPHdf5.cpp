@@ -70,7 +70,8 @@ hid_t& dtkIoDataModelPHdf5Private::datasetId(const QString& dataset_name,
 
     if(!dataset_hash.contains(dataset_name)) {
         if(dim>0) {
-            dtkInfo() << "Dataset not existing, creating DataSet" << dataset_name;
+            if(!comm->wid())
+                dtkInfo() << "Dataset not existing, creating DataSet" << dataset_name;
             
             QStringList dataset_name_split = dataset_name.split( "/" );
             //erase first (root) and last (dataset) elements to only keep groups
@@ -119,7 +120,8 @@ hid_t& dtkIoDataModelPHdf5Private::datasetId(const QString& dataset_name,
         }
         else {
             //we just want to open a dataset
-            dtkInfo() << "opening Dataset" << dataset_name;
+            if(!comm->wid())
+                dtkInfo() << "opening Dataset" << dataset_name;
             dataset_hash[dataset_name] = H5Dopen(file_id, dataset_name.toUtf8().constData(), H5P_DEFAULT);           
         }
         
